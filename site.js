@@ -173,6 +173,8 @@
     // ce se aude pe fiecare slide: depinde de capitol, de zi/noapte și de cât am înaintat (toamna → iarna)
     play(slide, idx) {
       if (!this.ctx) return;
+      if (this.muted) { this.pending = [slide, idx]; return; }   // fără sunet: nu descărcăm nimic (economie de date pe telefon)
+      this.pending = null;
       const p = idx / Math.max(1, N - 1), night = slide.classList.contains('night'), ch = slide.dataset.ch;
       const L = { vant_toamna: .42 * (1 - .55 * p), parau: .26 };
       if (p > .35) L.iarna_zi = .34 * Math.min(1, (p - .35) / .4);
@@ -210,6 +212,7 @@
       if (!this.ctx) return; const now = this.ctx.currentTime;
       this.out.gain.cancelScheduledValues(now); this.out.gain.setValueAtTime(instant ? (m ? 0 : 1) : this.out.gain.value, now); if (!instant) this.out.gain.linearRampToValueAtTime(m ? 0 : 1, now + .5);
       if (!m && this.ctx.state === 'suspended') this.ctx.resume();
+      if (!m && this.pending) this.play(...this.pending);
     },
     read() { if (!this.an || !this.scene) return false; this.an.getByteFrequencyData(this.freq); this.an.getByteTimeDomainData(this.time); return true; },
   };
