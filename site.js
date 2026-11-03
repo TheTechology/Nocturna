@@ -106,8 +106,8 @@
     ctx: null, bus: null, out: null, an: null, tracks: {}, muted: false, scene: null, timer: 0, rate: 1,
     blobs: {},
     url(name) {
-      if (FILE && window.SUNETE && window.SUNETE[name]) return this.blobs[name] || (this.blobs[name] = URL.createObjectURL(new Blob([Uint8Array.from(atob(window.SUNETE[name]), c => c.charCodeAt(0))], { type: 'audio/mpeg' })));
-      return `media/audio/${name}.mp3`;
+      if (FILE && window.SUNETE && window.SUNETE[name]) return this.blobs[name] || (this.blobs[name] = URL.createObjectURL(new Blob([Uint8Array.from(atob(window.SUNETE[name]), c => c.charCodeAt(0))], { type: 'audio/mp4' })));
+      return `media/audio/${name}.m4a`;
     },
     init(muted) {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC || this.ctx) return;
@@ -496,13 +496,20 @@
         x.fillStyle = `rgba(255,226,190,${(1 - k).toFixed(3)})`; x.font = '800 13px Figtree, sans-serif'; x.textAlign = 'center'; x.fillText('+1', b.x, b.y - 20 - k * 20); return true; });
     } };
   }
-  mountMap();
+  const mapSlide = ($('.map-live') || { closest: () => null }).closest('.slide');
   if (qs.has('debug')) window.SND = SND;
+
+  // ---------- încărcarea leneșă: imaginile și posterele se descarcă doar pentru slide-urile din jur ----------
+  function hydrate(slide) {
+    if (!slide || slide.dataset.h) return; slide.dataset.h = '1';
+    $$('img[data-src]', slide).forEach(im => { im.src = im.dataset.src; im.removeAttribute('data-src'); });
+    $$('video[data-poster]', slide).forEach(v => { v.poster = v.dataset.poster; v.removeAttribute('data-poster'); });
+  }
 
   // ---------- videoclipurile ----------
   function loadVideos(slide, play) {
     $$('video', slide).forEach(v => {
-      if (!v.src) { v.src = v.dataset.src; v.preload = 'auto'; }
+      if (!v.src) { v.preload = play || !TOUCH ? 'auto' : 'metadata'; v.src = v.dataset.src; }   // pe telefon, următorul clip doar se pregătește
       if (play) { v.currentTime = 0; v.play().catch(() => {}); }
     });
   }
@@ -542,6 +549,9 @@
     stage.classList.toggle('is-night', night); document.body.classList.toggle('light-bg', !night);
     if (night && nw.dataset.div) sky.flock();
     cur = i;
+    hydrate(nw); hydrate(slides[i + 1]); hydrate(slides[i - 1]); setTimeout(() => hydrate(slides[i + 2]), 1500);
+    if (!map && mapSlide && Math.abs(slides.indexOf(mapSlide) - i) <= 1) mountMap();   // harta se desenează abia când ajungi lângă ea
+    curMoon = $('.im.moon', nw);
     loadVideos(nw, true); if (slides[i + 1]) loadVideos(slides[i + 1], false);
     if (!STATIC) { count(nw); typeCode(nw); }
     if (!quiet) { SND.play(nw, i); if (nw.dataset.div) SND.whoosh(); else SND.tick(); }
@@ -620,13 +630,14 @@
   addEventListener('hashchange', () => { const n = parseInt(location.hash.slice(1)); if (n) go(n - 1); });
 
   // ---------- bucla de animație ----------
-  let frameN = 0;
+  let frameN = 0, curMoon = null, lastLvl = -1;
   function loop(now) {
     const has = SND.read();
     let rms = 0; if (has) { for (let i = 0; i < SND.time.length; i += 8) { const v = (SND.time[i] - 128) / 128; rms += v * v; } rms = Math.sqrt(rms / (SND.time.length / 8)); }
-    lvl += (Math.min(1, rms * 5) - lvl) * .12; stage.style.setProperty('--lvl', lvl.toFixed(3));
+    lvl += (Math.min(1, rms * 5) - lvl) * .12;
+    if (curMoon && Math.abs(lvl - lastLvl) > .01) { curMoon.style.setProperty('--lvl', lvl.toFixed(2)); lastLvl = lvl; }
     const night = stage.classList.contains('is-night');
-    if (!LOW || (frameN++ & 1)) sky.frame(now, lvl, !night);
+    if (!(LOW || TOUCH) || (frameN++ & 1)) sky.frame(now, lvl, !night);
     drawHorizon(now, night, has);
     if (spec && slides[cur] && slides[cur].contains(spec.wrap)) spec.frame(has, now);
     if (map && slides[cur] && slides[cur].contains(map.el)) map.frame(now);

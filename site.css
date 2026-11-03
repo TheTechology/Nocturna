@@ -73,7 +73,7 @@ button { font: inherit; cursor: pointer; }
 .band .gl b { font: 400 54px/1 Caprasimo, serif; color: #f5ead8; white-space: nowrap; }
 
 /* ---------- animațiile de intrare ---------- */
-.slide [data-fx] { opacity: 0; transition: opacity .8s var(--ease), transform 1s var(--ease), filter .8s var(--ease), clip-path 1.1s var(--ease); transition-delay: var(--d, 0ms); will-change: transform, opacity; }
+.slide [data-fx] { opacity: 0; transition: opacity .8s var(--ease), transform 1s var(--ease), filter .8s var(--ease), clip-path 1.1s var(--ease); transition-delay: var(--d, 0ms); }
 .slide [data-fx="r"] { transform: translate3d(0, 46px, 0); filter: blur(8px); }
 .slide [data-fx="f"] { filter: blur(6px); }
 .slide [data-fx="z"] { transform: scale(.4); transition-timing-function: var(--ease), var(--spring), var(--ease), var(--ease); transition-duration: .6s, .85s, .6s, 1s; }
@@ -287,6 +287,11 @@ body:not(.started) .side { display: none; }
 .slide .qr { position: absolute; overflow: hidden; }
 .slide .qr img { filter: drop-shadow(0 0 10px rgba(246, 160, 107, .25)); }
 .slide .qr img { width: 100%; height: 100%; display: block; }
-.slide .qr i { position: absolute; left: 6%; right: 6%; top: 6%; height: 3px; border-radius: 2px; background: linear-gradient(90deg, rgba(246,160,107,0), rgba(246,160,107,.85), rgba(246,160,107,0)); box-shadow: 0 0 14px rgba(246, 160, 107, .7); animation: scan 3.2s ease-in-out infinite; }
-@keyframes scan { 0%, 100% { transform: translateY(0); opacity: 0; } 10%, 90% { opacity: 1; } 50% { transform: translateY(350px); } }
+.slide .qr i { position: absolute; left: 6%; right: 6%; top: 6%; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(246,160,107,0), rgba(246,160,107,.85), rgba(246,160,107,0)); box-shadow: 0 0 14px rgba(246, 160, 107, .7); animation: scan 3.2s ease-in-out infinite; }
+@keyframes scan { 0%, 100% { top: 7%; opacity: 0; } 10%, 90% { opacity: 1; } 50% { top: 92%; } }
 @media (prefers-reduced-motion: reduce) { .slide .qr i { display: none; } }
+
+/* pe telefon și pe tablă: fără estompări (blur) în animații și fără sticlă mată, ca să nu se blocheze procesorul */
+.touch .slide [data-fx], .touch .slide.leaving { filter: none !important; }
+.touch #bar, .touch .side, .touch .mp-legend, .touch #menu { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.touch #bar { background: rgba(15, 22, 32, .9); } .touch .side { background: rgba(15, 22, 32, .7); }
