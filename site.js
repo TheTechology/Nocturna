@@ -552,7 +552,7 @@
     hydrate(nw); hydrate(slides[i + 1]); hydrate(slides[i - 1]); setTimeout(() => hydrate(slides[i + 2]), 1500);
     if (!map && mapSlide && Math.abs(slides.indexOf(mapSlide) - i) <= 1) mountMap();   // harta se desenează abia când ajungi lângă ea
     curMoon = $('.im.moon', nw);
-    loadVideos(nw, true); if (slides[i + 1]) loadVideos(slides[i + 1], false);
+    if (!quiet || intro.classList.contains('gone')) { loadVideos(nw, true); if (slides[i + 1]) loadVideos(slides[i + 1], false); }   // pe ecranul „Pornește” nu descărcăm încă niciun video
     if (!STATIC) { count(nw); typeCode(nw); }
     if (!quiet) { SND.play(nw, i); if (nw.dataset.div) SND.whoosh(); else SND.tick(); }
     const p = N > 1 ? i / (N - 1) : 1; progI.style.width = p * 100 + '%'; progB.style.left = `calc(${p * 100}% ${p > .98 ? '- 16px' : p < .02 ? '+ 16px' : ''})`;
@@ -666,6 +666,7 @@
   fit(); sizeIntro();
   go(Math.max(0, (parseInt(location.hash.slice(1)) || 1) - 1), true);
   if (qs.has('direct')) { intro.classList.add('gone'); intro.hidden = true; document.body.classList.add('started'); }
+  if (qs.has('direct')) { loadVideos(slides[cur], true); if (slides[cur + 1]) loadVideos(slides[cur + 1], false); }
   if (qs.has('autostart')) setTimeout(() => { intro.classList.remove('gone'); intro.hidden = false; start(false); }, 300);   // doar pentru verificare
   requestAnimationFrame(loop);
   setTimeout(() => document.body.classList.add('idle'), 3000);
